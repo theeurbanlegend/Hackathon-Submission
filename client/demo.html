@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADA Split Bills - Split expenses instantly with Cardano</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .card-shadow {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: all 0.3s ease;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+      }
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block;
+      }
+      .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+      }
+      .status-pending {
+        background-color: #fbbf24;
+      }
+      .status-paid {
+        background-color: #10b981;
+      }
+      .progress-bar {
+        background: linear-gradient(
+          90deg,
+          #10b981 var(--progress, 0%),
+          #e5e7eb var(--progress, 0%)
+        );
+        transition: all 0.5s ease;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center space-x-2">
+            <div
+              class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
+            >
+              <i data-lucide="split" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="text-xl font-bold text-gray-900">ADA Split Bills</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <button
+              id="connectWallet"
+              class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              Connect Wallet
+            </button>
+            <div
+              id="walletInfo"
+              class="hidden bg-green-100 px-3 py-2 rounded-lg text-sm"
+            >
+              <span class="text-green-800">Connected: addr1...xyz</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page 1: Landing Page -->
+    <div id="landingPage" class="page active">
+      <div class="gradient-bg">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div class="text-center text-white">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">
+              Split Bills<br />
+              <span class="text-blue-200">Instantly</span>
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
+              No IOUs. No awkward reminders. Just instant settlement with ADA.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onclick="showPage('createBillPage')"
+                class="btn-primary text-white px-8 py-4 rounded-xl text-lg font-semibold"
+              >
+                Create New Bill
+              </button>
+              <button
+                onclick="showPage('dashboardPage')"
+                class="bg-white bg-opacity-20 backdrop-blur text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-opacity-30 transition-all"
+              >
+                View My Bills
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Section -->
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="text-center">
+            <div
+              class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <i data-lucide="camera" class="w-8 h-8 text-blue-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Snap & Split</h3>
+            <p class="text-gray-600">
+              Photo your receipt, we'll handle the math
+            </p>
+          </div>
+          <div class="text-center">
+            <div
+              class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <i data-lucide="qr-code" class="w-8 h-8 text-green-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Share & Pay</h3>
+            <p class="text-gray-600">QR codes make splitting effortless</p>
+          </div>
+          <div class="text-center">
+            <div
+              class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <i data-lucide="check-circle" class="w-8 h-8 text-purple-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Done & Settled</h3>
+            <p class="text-gray-600">Instant settlement via smart contracts</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 2: Create Bill -->
+    <div id="createBillPage" class="page">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-white rounded-2xl card-shadow p-8">
+          <div class="flex items-center mb-8">
+            <button
+              onclick="showPage('landingPage')"
+              class="mr-4 p-2 hover:bg-gray-100 rounded-lg"
+            >
+              <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </button>
+            <h2 class="text-2xl font-bold text-gray-900">Create New Bill</h2>
+          </div>
+
+          <form id="createBillForm" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Bill Title</label
+              >
+              <input
+                type="text"
+                id="billTitle"
+                placeholder="Dinner at Mario's Restaurant"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Total Amount (ADA)</label
+                >
+                <input
+                  type="number"
+                  id="totalAmount"
+                  placeholder="100"
+                  step="0.01"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Number of People</label
+                >
+                <input
+                  type="number"
+                  id="participantCount"
+                  placeholder="4"
+                  min="2"
+                  max="20"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Description (Optional)</label
+              >
+              <textarea
+                id="billDescription"
+                placeholder="Great Italian food with friends!"
+                rows="3"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              ></textarea>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-start">
+                <i
+                  data-lucide="info"
+                  class="w-5 h-5 text-blue-600 mt-0.5 mr-3"
+                ></i>
+                <div class="text-sm text-blue-800">
+                  <p class="font-medium mb-1">Smart Contract Escrow</p>
+                  <p>
+                    Funds will be held in a secure smart contract until all
+                    participants pay. Participants can get refunds after 1 hour
+                    if the bill isn't complete.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex space-x-4">
+              <button
+                type="button"
+                onclick="showPage('landingPage')"
+                class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="flex-1 btn-primary text-white py-3 rounded-lg font-semibold"
+              >
+                Create Bill & Deploy Contract
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 3: Bill Details -->
+    <div id="billDetailsPage" class="page">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+          <!-- Header -->
+          <div class="gradient-bg text-white p-8">
+            <div class="flex items-center justify-between mb-4">
+              <h1 class="text-2xl font-bold">Dinner at Mario's Restaurant</h1>
+              <span
+                class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm"
+                >Bill #abc123</span
+              >
+            </div>
+            <p class="text-blue-100 mb-6">Great Italian food with friends!</p>
+
+            <!-- Progress Bar -->
+            <div class="mb-4">
+              <div class="flex justify-between text-sm mb-2">
+                <span>Payment Progress</span>
+                <span>2 of 4 paid</span>
+              </div>
+              <div class="w-full bg-white bg-opacity-20 rounded-full h-3">
+                <div
+                  class="progress-bar h-3 rounded-full"
+                  style="--progress: 50%"
+                ></div>
+              </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-lg font-semibold">100 ADA Total</p>
+                <p class="text-blue-200">25 ADA per person</p>
+              </div>
+              <div class="bg-white p-4 rounded-lg">
+                <div
+                  class="w-24 h-24 bg-gray-200 rounded flex items-center justify-center"
+                >
+                  <i data-lucide="qr-code" class="w-12 h-12 text-gray-600"></i>
+                </div>
+                <p class="text-xs text-gray-600 text-center mt-2">
+                  Scan to pay
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Status -->
+          <div class="p-8">
+            <h3 class="text-lg font-semibold mb-6">Payment Status</h3>
+            <div class="space-y-4">
+              <div
+                class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg"
+              >
+                <div class="flex items-center">
+                  <span class="status-indicator status-paid"></span>
+                  <span class="font-medium">Alex (Bill Creator)</span>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-green-600">25 ADA</p>
+                  <p class="text-xs text-gray-500">Paid initially</p>
+                </div>
+              </div>
+
+              <div
+                class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg"
+              >
+                <div class="flex items-center">
+                  <span class="status-indicator status-paid"></span>
+                  <span class="font-medium">Beth</span>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-green-600">25 ADA</p>
+                  <p class="text-xs text-gray-500">Paid 5 min ago</p>
+                </div>
+              </div>
+
+              <div
+                class="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+              >
+                <div class="flex items-center">
+                  <span class="status-indicator status-pending"></span>
+                  <span class="font-medium">Chris</span>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-yellow-600">25 ADA</p>
+                  <p class="text-xs text-gray-500">Pending</p>
+                </div>
+              </div>
+
+              <div
+                class="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+              >
+                <div class="flex items-center">
+                  <span class="status-indicator status-pending"></span>
+                  <span class="font-medium">Dana</span>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-yellow-600">25 ADA</p>
+                  <p class="text-xs text-gray-500">Pending</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-4 mt-8">
+              <button
+                onclick="showPage('paymentPage')"
+                class="flex-1 btn-primary text-white py-3 rounded-lg font-semibold"
+              >
+                Pay My Share (25 ADA)
+              </button>
+              <button
+                class="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Share Bill
+              </button>
+            </div>
+
+            <!-- Contract Info -->
+            <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+              <p class="text-sm text-gray-600 mb-2">
+                <strong>Escrow Contract:</strong> addr1_script_abc123...
+              </p>
+              <p class="text-xs text-gray-500">
+                Funds are held securely until all participants pay. Refunds
+                available after 1 hour if incomplete.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 4: Payment Page -->
+    <div id="paymentPage" class="page">
+      <div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-white rounded-2xl card-shadow p-8">
+          <div class="text-center mb-8">
+            <div
+              class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <i data-lucide="credit-card" class="w-8 h-8 text-blue-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">
+              Pay Your Share
+            </h2>
+            <p class="text-gray-600">Dinner at Mario's Restaurant</p>
+          </div>
+
+          <div
+            class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-8"
+          >
+            <div class="text-center">
+              <p class="text-3xl font-bold text-gray-900 mb-2">25 ADA</p>
+              <p class="text-gray-600 mb-4">Your portion of 100 ADA total</p>
+              <div
+                class="flex items-center justify-center text-sm text-gray-500"
+              >
+                <i data-lucide="users" class="w-4 h-4 mr-2"></i>
+                <span>Split between 4 people</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4 mb-8">
+            <div class="flex justify-between py-2">
+              <span class="text-gray-600">Amount</span>
+              <span class="font-semibold">25 ADA</span>
+            </div>
+            <div class="flex justify-between py-2">
+              <span class="text-gray-600">Transaction Fee</span>
+              <span class="font-semibold">~0.2 ADA</span>
+            </div>
+            <div class="border-t pt-2">
+              <div class="flex justify-between py-2">
+                <span class="font-semibold">Total Deducted</span>
+                <span class="font-bold text-lg">25.2 ADA</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6"
+          >
+            <div class="flex items-start">
+              <i
+                data-lucide="clock"
+                class="w-5 h-5 text-yellow-600 mt-0.5 mr-3"
+              ></i>
+              <div class="text-sm text-yellow-800">
+                <p class="font-medium mb-1">Refund Available</p>
+                <p>
+                  If this bill isn't completed within 1 hour, you can reclaim
+                  your funds.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <button
+              class="w-full btn-primary text-white py-4 rounded-lg font-semibold text-lg"
+            >
+              Connect Wallet & Pay
+            </button>
+            <button
+              onclick="showPage('billDetailsPage')"
+              class="w-full bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+            >
+              Back to Bill
+            </button>
+          </div>
+
+          <div class="mt-6 text-center">
+            <p class="text-xs text-gray-500">
+              Funds sent to escrow contract: addr1_script_abc123...
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 5: Dashboard -->
+    <div id="dashboardPage" class="page">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">My Bills</h1>
+          <p class="text-gray-600">
+            Track your created bills and payment history
+          </p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid sm:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white rounded-xl card-shadow p-6">
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+              >
+                <i data-lucide="file-plus" class="w-6 h-6 text-blue-600"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-2xl font-bold text-gray-900">12</p>
+                <p class="text-gray-600">Bills Created</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl card-shadow p-6">
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+              >
+                <i
+                  data-lucide="check-circle"
+                  class="w-6 h-6 text-green-600"
+                ></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-2xl font-bold text-gray-900">284</p>
+                <p class="text-gray-600">ADA Settled</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl card-shadow p-6">
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+              >
+                <i data-lucide="users" class="w-6 h-6 text-purple-600"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-2xl font-bold text-gray-900">8</p>
+                <p class="text-gray-600">Active Bills</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bills List -->
+        <div class="bg-white rounded-xl card-shadow overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-semibold text-gray-900">Recent Bills</h2>
+              <button
+                onclick="showPage('createBillPage')"
+                class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium"
+              >
+                Create New Bill
+              </button>
+            </div>
+          </div>
+
+          <div class="divide-y divide-gray-200">
+            <div
+              class="p-6 hover:bg-gray-50 cursor-pointer"
+              onclick="showPage('billDetailsPage')"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-semibold text-gray-900">
+                    Dinner at Mario's Restaurant
+                  </h3>
+                  <p class="text-gray-600 text-sm">
+                    2 of 4 participants paid • Created 1 hour ago
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-900">100 ADA</p>
+                  <span
+                    class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium"
+                  >
+                    Pending
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6 hover:bg-gray-50 cursor-pointer">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-semibold text-gray-900">Coffee & Pastries</h3>
+                  <p class="text-gray-600 text-sm">
+                    3 of 3 participants paid • Settled yesterday
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-900">24 ADA</p>
+                  <span
+                    class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium"
+                  >
+                    Complete
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6 hover:bg-gray-50 cursor-pointer">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-semibold text-gray-900">Team Lunch</h3>
+                  <p class="text-gray-600 text-sm">
+                    5 of 5 participants paid • Settled 3 days ago
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-900">150 ADA</p>
+                  <span
+                    class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium"
+                  >
+                    Complete
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 6: Success/Receipt -->
+    <div id="successPage" class="page">
+      <div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-white rounded-2xl card-shadow p-8 text-center">
+          <div
+            class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+          >
+            <i data-lucide="check-circle" class="w-10 h-10 text-green-600"></i>
+          </div>
+
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Payment Sent!</h2>
+          <p class="text-gray-600 mb-8">
+            Your payment has been submitted to the blockchain
+          </p>
+
+          <div class="bg-gray-50 rounded-lg p-6 mb-8">
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Amount Paid</span>
+                <span class="font-semibold">25 ADA</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Transaction Fee</span>
+                <span class="font-semibold">0.17 ADA</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Bill</span>
+                <span class="font-semibold">Dinner at Mario's</span>
+              </div>
+              <div class="border-t pt-3">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Transaction Hash</span>
+                  <span class="font-mono text-xs text-blue-600"
+                    >tx_def456...</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+            <div class="flex items-start">
+              <i
+                data-lucide="info"
+                class="w-5 h-5 text-blue-600 mt-0.5 mr-3"
+              ></i>
+              <div class="text-sm text-blue-800 text-left">
+                <p class="font-medium mb-1">What happens next?</p>
+                <p>
+                  Your funds are held in escrow until all participants pay.
+                  You'll be notified when the bill is complete!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <button
+              class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              View on Explorer
+            </button>
+            <button
+              onclick="showPage('billDetailsPage')"
+              class="w-full bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+            >
+              Back to Bill
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Initialize Lucide icons
+      lucide.createIcons();
+
+      // Simple page navigation
+      function showPage(pageId) {
+        document.querySelectorAll(".page").forEach((page) => {
+          page.classList.remove("active");
+        });
+        document.getElementById(pageId).classList.add("active");
+      }
+
+      // Mock wallet connection
+      document
+        .getElementById("connectWallet")
+        .addEventListener("click", function () {
+          // Simulate wallet connection
+          setTimeout(() => {
+            document.getElementById("connectWallet").classList.add("hidden");
+            document.getElementById("walletInfo").classList.remove("hidden");
+          }, 1000);
+        });
+
+      // Form handling for bill creation
+      document
+        .getElementById("createBillForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const title = document.getElementById("billTitle").value;
+          const amount = document.getElementById("totalAmount").value;
+          const participants =
+            document.getElementById("participantCount").value;
+
+          if (!title || !amount || !participants) {
+            alert("Please fill in all required fields");
+            return;
+          }
+
+          // Simulate bill creation and contract deployment
+          const button = e.target.querySelector('button[type="submit"]');
+          const originalText = button.textContent;
+
+          button.textContent = "Deploying Contract...";
+          button.disabled = true;
+
+          setTimeout(() => {
+            showPage("billDetailsPage");
+            button.textContent = originalText;
+            button.disabled = false;
+          }, 2000);
+        });
+
+      // Real-time updates simulation
+      function simulateRealTimeUpdates() {
+        console.log("Simulating real-time updates...");
+        const progressBar = document.querySelector(".progress-bar");
+        const statusElements = document.querySelectorAll(".status-indicator");
+
+        // Simulate payments coming in
+        setTimeout(() => {
+          // Update progress
+          progressBar.style.setProperty("--progress", "75%");
+
+          // Update status indicators
+          if (statusElements[2]) {
+            statusElements[2].classList.remove("status-pending");
+            statusElements[2].classList.add("status-paid");
+          }
+
+          // Show notification
+          showNotification("Chris just paid! 3 of 4 participants complete.");
+        }, 5000);
+      }
+
+      // Notification system
+      function showNotification(message) {
+        const notification = document.createElement("div");
+        notification.className =
+          "fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300";
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.classList.remove("translate-x-full");
+        }, 100);
+
+        setTimeout(() => {
+          notification.classList.add("translate-x-full");
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 300);
+        }, 4000);
+      }
+
+      // Start real-time simulation when on bill details page
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check if we're on bill details page and start simulation
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("page") === "bill") {
+          console.log(
+            "Bill details page loaded, starting real-time updates..."
+          );
+          showPage("billDetailsPage");
+          simulateRealTimeUpdates();
+        }
+      });
+
+      // Mobile responsive QR code scanning simulation
+      function simulateQRScan() {
+        showNotification("QR Code scanned! Redirecting to payment...");
+        setTimeout(() => {
+          showPage("paymentPage");
+        }, 1500);
+      }
+
+      // Copy to clipboard functionality
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          showNotification("Copied to clipboard!");
+        });
+      }
+
+      // Add click handlers for copy functionality
+      document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("font-mono")) {
+          copyToClipboard(e.target.textContent);
+        }
+      });
+
+      // Simulate payment processing
+      function processPayment() {
+        const payButton = document.querySelector(".btn-primary");
+        if (!payButton) return;
+        console.log("Processing payment...", payButton);
+
+        const originalText = payButton.textContent;
+        payButton.textContent = "Processing Payment...";
+        payButton.disabled = true;
+
+        // Simulate wallet confirmation
+        setTimeout(() => {
+          payButton.textContent = "Confirming Transaction...";
+        }, 1000);
+
+        // Simulate blockchain confirmation
+        setTimeout(() => {
+          showPage("successPage");
+          payButton.textContent = originalText;
+          payButton.disabled = false;
+        }, 3000);
+      }
+
+      // Add payment processing to payment buttons
+      document.addEventListener("click", function (e) {
+        if (e.target.textContent.includes("Connect Wallet & Pay")) {
+          e.preventDefault();
+          processPayment();
+        }
+      });
+    </script>
+  </body>
+</html>
