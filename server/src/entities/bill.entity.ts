@@ -7,6 +7,16 @@ export enum BillStatus {
   Complete = 'complete',
   Expired = 'expired',
 }
+export enum ParticipantPaymentStatus {
+  Pending = 'pending',
+  Paid = 'paid',
+  Failed = 'failed',
+}
+
+export enum BillCurrency {
+  ADA = 'ADA',
+  USD = 'USD',
+}
 
 @Schema({ _id: false })
 export class Participant {
@@ -19,6 +29,16 @@ export class Participant {
   @Prop({ required: true })
   paymentTxHash: string;
 
+  @Prop({
+    enum: [
+      ParticipantPaymentStatus.Pending,
+      ParticipantPaymentStatus.Paid,
+      ParticipantPaymentStatus.Failed,
+    ],
+    default: ParticipantPaymentStatus.Pending,
+  })
+  paymentStatus: string;
+
   @Prop({ required: true, default: Date.now })
   paidAt: Date;
 }
@@ -29,6 +49,9 @@ export const ParticipantSchema = SchemaFactory.createForClass(Participant);
 export class Bill extends Document {
   @Prop({ required: true, index: true })
   creatorAddress: string;
+
+  @Prop({ required: true, index: true })
+  escrowAddress: string;
 
   @Prop({ required: true, maxlength: 100 })
   title: string;
@@ -42,7 +65,7 @@ export class Bill extends Document {
   @Prop({ required: true, min: 1 })
   amountPerParticipant: number;
 
-  @Prop({ default: 'ADA' })
+  @Prop({ default: BillCurrency.ADA })
   currency: string;
 
   @Prop({

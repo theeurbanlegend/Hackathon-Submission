@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Bill, BillDocument, Participant } from '../entities/bill.entity';
+import {
+  Bill,
+  BillDocument,
+  BillStatus,
+  Participant,
+  ParticipantPaymentStatus,
+} from '../entities/bill.entity';
 
 @Injectable()
 export class BillRepository {
@@ -43,6 +49,12 @@ export class BillRepository {
       .exec();
   }
 
+  async findByEscrowAddress(
+    escrowAddress: string,
+  ): Promise<BillDocument | null> {
+    return this.billModel.findOne({ escrowAddress }).exec();
+  }
+
   async findByParticipant(participantAddress: string): Promise<BillDocument[]> {
     return this.billModel
       .find({ 'participants.address': participantAddress })
@@ -76,6 +88,10 @@ export class BillRepository {
     }
 
     if (bill.participants.length >= bill.participantCount) {
+      throw new Error('Cannot add more participants, bill is full');
+    }
+
+    if (bill.status === BillStatus.Complete) {
       throw new Error('Bill is already complete');
     }
 
@@ -84,6 +100,8 @@ export class BillRepository {
       amountPaid: participantData.amountPaid!,
       paymentTxHash: participantData.paymentTxHash!,
       paidAt: participantData.paidAt || new Date(),
+      paymentStatus:
+        participantData.paymentStatus || ParticipantPaymentStatus.Pending,
     });
 
     return bill.save();

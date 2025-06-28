@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RepositoryModule } from './repository/repository.module';
+import { BillModule } from './modules/bill/bill.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RepositoryModule } from './repository/repository.module';
       }),
     }),
     RepositoryModule,
+    BillModule,
   ],
   controllers: [AppController],
   providers: [AppService],
