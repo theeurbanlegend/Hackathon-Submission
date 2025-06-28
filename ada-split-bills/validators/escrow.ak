@@ -1,9 +1,9 @@
 use aiken/collection/list
-use aiken/crypto.{Blake2b_224, Hash, VerificationKey}
+use aiken/crypto.{Blake2b_224, Hash, VerificationKey as VerificationKeyType}
 use aiken/interval.{
   Finite, Interval, IntervalBound, NegativeInfinity, PositiveInfinity,
 }
-use cardano/address.{Address, VerificationKey as VerificationKeyHash}
+use cardano/address.{Address, VerificationKey}
 use cardano/assets.{lovelace_of}
 use cardano/transaction.{
   InlineDatum, Input, Output, OutputReference, Transaction,
@@ -11,7 +11,7 @@ use cardano/transaction.{
 
 pub type EscrowDatum {
   bill_id: ByteArray,
-  creator_address: Hash<Blake2b_224, VerificationKey>,
+  creator_address: Hash<Blake2b_224, VerificationKeyType>,
   total_required: Int,
   participant_count: Int,
   amount_per_participant: Int,
@@ -124,7 +124,7 @@ fn get_unique_senders(inputs: List<Input>) -> List<Address> {
 
 fn pays_to_creator(
   transaction: Transaction,
-  creator_address: Hash<Blake2b_224, VerificationKey>,
+  creator_address: Hash<Blake2b_224, VerificationKeyType>,
   amount: Int,
 ) -> Bool {
   let Transaction { outputs, .. } = transaction
@@ -140,10 +140,12 @@ fn pays_to_creator(
 
 fn output_pays_to_creator_hash(
   output: Output,
-  creator_hash: Hash<Blake2b_224, VerificationKey>,
+  creator_hash: Hash<Blake2b_224, VerificationKeyType>,
 ) -> Bool {
-  when output.address.payment_credential is {
-    VerificationKeyHash(hash) -> hash == creator_hash
+  let Output { address, .. } = output
+  let Address { payment_credential, .. } = address
+  when payment_credential is {
+    VerificationKey(hash) -> hash == creator_hash
     _ -> False
   }
 }
@@ -173,7 +175,7 @@ fn participant_gets_refund_for_bill(
 
 fn signed_by_creator(
   transaction: Transaction,
-  creator_address: Hash<Blake2b_224, VerificationKey>,
+  creator_address: Hash<Blake2b_224, VerificationKeyType>,
 ) -> Bool {
   let Transaction { extra_signatories, .. } = transaction
   list.has(extra_signatories, creator_address)
