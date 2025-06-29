@@ -42,10 +42,9 @@ export default function CreateBillPage() {
       receiptImagePath: "", // Assuming no receipt image for now
     });
 
-    // Simulate bill creation and contract deployment
     setTimeout(() => {
-      router.push("/bills-details/abc123");
-    }, 2000);
+      router.push(`/bills/${data.bill?._id}`);
+    }, 1000);
   };
 
   const handleInputChange = (

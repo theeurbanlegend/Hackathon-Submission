@@ -71,3 +71,7 @@ export interface BillPaymentResponse {
 export interface BillSettlementResponse {
   unsignedTx: string;
 }
+export enum CardanoNetwork {
+  Mainnet = 1,
+  Testnet = 0,
+}

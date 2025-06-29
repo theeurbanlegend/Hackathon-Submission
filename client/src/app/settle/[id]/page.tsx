@@ -82,11 +82,9 @@ export default function SettlePage() {
       };
     });
     setCanSettle(
-      bill &&
-        bill.status === BillStatus.Complete &&
-        settlementStats.paidParticipants ===
-          settlementStats.totalParticipants &&
-        settlementStats.totalToReceive > 0
+      bill.status == BillStatus.Complete &&
+        paidParticipants === bill.participantCount &&
+        totalToReceive > 0
     );
     setIsCreator(
       !!(

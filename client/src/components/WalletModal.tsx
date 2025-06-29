@@ -1,3 +1,4 @@
+import { useToast } from "@/context/ToastContext";
 import { useWallet } from "@/context/WalletContext";
 import React from "react";
 
@@ -12,6 +13,7 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
     availableWallets,
     connect,
   } = useWallet();
+  const { toast } = useToast();
 
   if (!isOpen) return null;
 
@@ -19,10 +21,13 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
     try {
       console.log(`Connecting to ${walletType}...`);
       await connect(walletType);
-      console.log(`${walletType} connected successfully!`);
       if (onClose) onClose();
     } catch (error) {
       console.error("Failed to connect wallet:", error);
+      toast.error(
+        error instanceof Error ? error?.message : "Failed to connect wallet",
+        { position: "top-center" }
+      );
     }
   };
 

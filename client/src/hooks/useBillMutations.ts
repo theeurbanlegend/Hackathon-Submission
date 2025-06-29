@@ -1,6 +1,7 @@
 import { API } from "@/lib/api";
 import {
   AddParticipantToBillDto,
+  Bill,
   BillPaymentResponse,
   BillSettlementResponse,
   CreateBillDto,
@@ -11,7 +12,10 @@ export const usePostCreateBill = () => {
   return useMutation({
     mutationFn: async (data: CreateBillDto) => {
       const response = await API.post("/bills/create", data);
-      return response.data;
+      return response.data as {
+        message: string;
+        bill: Bill;
+      };
     },
   });
 };

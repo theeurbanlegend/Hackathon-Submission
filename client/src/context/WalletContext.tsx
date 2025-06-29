@@ -7,6 +7,7 @@ import React, {
   useMemo,
 } from "react";
 import { BrowserWallet, Wallet } from "@meshsdk/core";
+import { CardanoNetwork } from "@/types/api.types";
 
 interface WalletContextType {
   walletConnectionState: WalletConnectionState;
@@ -77,6 +78,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     updateWalletConnectionState({ isConnecting: true });
     try {
       const wallet = await BrowserWallet.enable(walletName);
+      const networkId = await wallet.getNetworkId();
+      if (networkId !== CardanoNetwork.Testnet) {
+        throw new Error(
+          `We are still on the beta phase, mainnet version will be available soon. Please switch to Testnet network in your wallet settings.`
+        );
+      }
       const address = await wallet.getChangeAddress();
       const balance = await wallet.getBalance();
       const totalBalance =
@@ -90,6 +97,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       updateWalletConnectionState({ isConnected: true, isConnecting: false });
     } catch (error) {
       console.error("Failed to connect wallet:", error);
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to connect wallet"
+      );
+    } finally {
       updateWalletConnectionState({ isConnecting: false });
     }
   };
