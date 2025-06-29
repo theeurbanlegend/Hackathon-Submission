@@ -69,7 +69,7 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
                 <button
                   key={wallet.name}
                   className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => handleConnect(wallet.name)}
+                  onClick={() => handleConnect(wallet.id)}
                   disabled={isConnecting}
                 >
                   <img
