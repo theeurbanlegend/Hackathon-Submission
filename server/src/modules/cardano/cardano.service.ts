@@ -1,22 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ContractService } from './contracts/contract.service';
 import { BillDocument, TransactionStatus } from 'src/entities/bill.entity';
-import { BlockfrostProvider, MeshTxBuilder, MeshWallet } from '@meshsdk/core';
+import { BlockfrostProvider, MeshTxBuilder } from '@meshsdk/core';
 import { ConfigService } from '@nestjs/config';
 import { BlockfrostUtxo } from 'src/common/types/blockfrost';
 import * as cbor from 'cbor';
-import * as fs from 'fs';
-import * as path from 'path';
 import { adaToLovelace } from 'src/common/utils/cardano';
 
 @Injectable()
 export class CardanoService {
-  async onModuleInit() {
-    // Uncomment to generate wallets for testing
-    await this.getAndSaveTwoWallets();
-  }
-  private wallet0: MeshWallet;
-  private wallet1: MeshWallet;
   private blockfrostProvider: BlockfrostProvider;
   constructor(
     private readonly contractService: ContractService,
@@ -209,77 +201,6 @@ export class CardanoService {
         : TransactionStatus.Pending;
     } catch (error) {
       throw new Error(`Failed to get transaction status: ${error.message}`);
-    }
-  }
-
-  //debuggine
-  //debugging
-  private getWalletMnemonic(index: number = 0): string[] {
-    const walletData = fs.readFileSync(
-      path.join(
-        process.cwd(),
-        'src/modules/cardano/contracts',
-        `wallet${index}.json`,
-      ),
-      'utf8',
-    );
-    const wallet = JSON.parse(walletData);
-    if (!wallet.mnemonic || !Array.isArray(wallet.mnemonic)) {
-      throw new Error(`Invalid wallet mnemonic format in wallet${index}.json`);
-    }
-    return wallet.mnemonic;
-  }
-  //i need 2 wallets to test the contract
-  private async getAndSaveTwoWallets() {
-    for (let i = 0; i < 2; i++) {
-      const walletMnemonic = this.getWalletMnemonic(i);
-      const wallet = new MeshWallet({
-        fetcher: this.blockfrostProvider,
-        submitter: this.blockfrostProvider,
-        networkId: 0, // 0: testnet, 1: mainnet
-        key: {
-          type: 'mnemonic',
-          words: walletMnemonic as string[],
-        },
-      });
-      this[`wallet${i}`] = wallet;
-    }
-    console.log('Wallets initialized');
-  }
-
-  //assuming this is the frontend side code
-  async testSignAndSubmitTx(unsignedTx: string) {
-    try {
-      const wallet = this.wallet1; // Use wallet0 for signing, can be changed to wallet1 if needed
-      if (!wallet) {
-        throw new Error(
-          'Wallet not initialized. Please ensure wallets are set up.',
-        );
-      }
-      const signedTx = await wallet.signTx(unsignedTx);
-      const txHash = await wallet.submitTx(signedTx);
-      console.log('Transaction submitted with hash:', txHash);
-      return { txHash };
-    } catch (error) {
-      console.error('Error signing and submitting transaction:', error);
-      throw new Error(`Failed to sign transaction: ${error.message}`);
-    }
-  }
-
-  async testSubmitSettleTx(
-    billId: string,
-    creatorAddress: string,
-  ): Promise<{ txHash: string }> {
-    try {
-      const { unsignedTx } = await this.buildSettleTransaction(
-        billId,
-        creatorAddress,
-      );
-
-      return { txHash: unsignedTx };
-    } catch (error) {
-      console.error('Error submitting settle transaction:', error);
-      throw new Error(`Failed to submit settle transaction: ${error.message}`);
     }
   }
 }
