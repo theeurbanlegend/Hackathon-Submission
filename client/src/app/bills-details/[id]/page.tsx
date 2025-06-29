@@ -13,15 +13,15 @@ import {
   AlertCircle,
   Users,
 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import { useGetBillById } from "@/hooks/useBillQueries";
 import { useWallet } from "@/context/WalletContext";
 import { BillStatus, ParticipantPaymentStatus } from "@/types/api.types";
-import { usePostInitiateBillSettlement } from "@/hooks/useBillMutations";
 
 export default function BillDetailsPage() {
   const { id } = useParams();
+  const router = useRouter();
   const {
     data: bill,
     isLoading,
@@ -29,9 +29,8 @@ export default function BillDetailsPage() {
     refetch,
   } = useGetBillById(id as string);
   const { toast } = useToast();
-  const { userWallet, signAndSubmitTxFromHex } = useWallet();
+  const { userWallet } = useWallet();
   const [lastPaymentCount, setLastPaymentCount] = useState(0);
-  const { mutateAsync } = usePostInitiateBillSettlement();
 
   // Calculate payment progress
   const paymentStats = useMemo(() => {
@@ -124,25 +123,7 @@ export default function BillDetailsPage() {
       toast.error("Only the bill creator can settle the bill.");
       return;
     }
-
-    try {
-      const { unsignedTx } = await mutateAsync({
-        billId: bill._id as string,
-      });
-      if (!unsignedTx) {
-        toast.error("Failed to initiate bill settlement.");
-        return;
-      }
-      const txHash = await signAndSubmitTxFromHex(unsignedTx);
-      if (!txHash) {
-        toast.error("Transaction submission failed.");
-        return;
-      }
-      toast.success("Bill settled successfully!");
-      refetch();
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to settle the bill.");
-    }
+    router.push(`/settle/${bill._id}`);
   };
 
   const getBillStatusInfo = (status: BillStatus) => {

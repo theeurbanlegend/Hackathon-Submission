@@ -201,7 +201,7 @@ export class CardanoService {
       return '';
     }
   }
-  async getTransactionStatus(txHash: string): Promise<string> {
+  async getTransactionStatus(txHash: string) {
     try {
       const txStatus = await this.blockfrostProvider.fetchTxInfo(txHash);
       return !!txStatus

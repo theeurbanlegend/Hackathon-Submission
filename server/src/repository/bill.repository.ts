@@ -81,6 +81,16 @@ export class BillRepository {
       .exec();
   }
 
+  async findCompletedUnconfirmedBills(): Promise<BillDocument[]> {
+    return this.billModel
+      .find({
+        status: BillStatus.Complete,
+        'participants.paymentStatus': ParticipantPaymentStatus.Pending,
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   async addParticipant(
     billId: string,
     participantData: Partial<Participant>,

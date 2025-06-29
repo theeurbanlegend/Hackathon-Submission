@@ -10,8 +10,13 @@ import {
   CreateBillDto,
   UpdateBillDto,
 } from './dto/bill.dto';
-import { BillStatus } from 'src/entities/bill.entity';
+import {
+  BillStatus,
+  ParticipantPaymentStatus,
+  TransactionStatus,
+} from 'src/entities/bill.entity';
 import { CardanoService } from '../cardano/cardano.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class BillService {
@@ -158,5 +163,37 @@ export class BillService {
     );
 
     return { unsignedTx };
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async checkPendingBills() {
+    try {
+      console.log('Checking pending bills...');
+      const pendingBills = await this.billRepository.findPendingBills();
+      const completedUnconfirmedBills =
+        await this.billRepository.findCompletedUnconfirmedBills();
+      for (const bill of [...pendingBills, ...completedUnconfirmedBills]) {
+        const unconfirmedParticipants = bill.participants.filter(
+          (p) => p.paymentStatus !== ParticipantPaymentStatus.Paid,
+        );
+        if (unconfirmedParticipants.length === 0) {
+          continue;
+        }
+        for (const participant of unconfirmedParticipants) {
+          const txStatus = await this.cardanoService.getTransactionStatus(
+            participant.paymentTxHash,
+          );
+          if (txStatus === TransactionStatus.Confirmed) {
+            participant.paymentStatus = ParticipantPaymentStatus.Paid;
+          }
+        }
+        await this.billRepository.update(bill._id as string, {
+          participants: bill.participants,
+        });
+      }
+      console.log('Pending bills check completed.');
+    } catch (error) {
+      console.error('Error checking pending bills:', error);
+    }
   }
 }

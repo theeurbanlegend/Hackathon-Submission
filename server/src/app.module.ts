@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RepositoryModule } from './repository/repository.module';
 import { BillModule } from './modules/bill/bill.module';
 import { CardanoModule } from './modules/cardano/cardano.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CardanoModule } from './modules/cardano/cardano.module';
           'mongodb://localhost:27017/hackathon',
       }),
     }),
+    ScheduleModule.forRoot(),
     RepositoryModule,
     BillModule,
     CardanoModule,
