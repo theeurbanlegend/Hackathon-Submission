@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   CheckCircle,
@@ -48,12 +48,7 @@ export default function SettlePage() {
   const [submittedTxHash, setSubmittedTxHash] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const {
-    data: bill,
-    isLoading,
-    error,
-    refetch,
-  } = useGetBillById(id as string);
+  const { data: bill, isLoading, error } = useGetBillById(id as string);
   const {
     userWallet,
     signAndSubmitTxFromHex,
@@ -150,7 +145,6 @@ export default function SettlePage() {
     setErrorMessage("");
 
     try {
-      // Step 1: Build settlement transaction
       setSettlementState("building");
       const response = await initiateSettlement({
         billId: bill._id as string,
@@ -160,8 +154,8 @@ export default function SettlePage() {
         throw new Error("Failed to build settlement transaction");
       }
 
-      // Step 2: Sign and submit transaction
       setSettlementState("signing");
+      setSettlementState("confirming");
       const txHash = await signAndSubmitTxFromHex(response.unsignedTx);
 
       if (!txHash) {
@@ -170,23 +164,15 @@ export default function SettlePage() {
 
       setSubmittedTxHash(txHash);
       setSettlementState("submitting");
+      setSettlementState("success");
+      toast.info("Bill settled successfully! Funds have been distributed.");
 
       console.log("Settlement transaction submitted:", txHash);
       toast(`Settlement transaction submitted! Hash: ${txHash.slice(0, 8)}...`);
 
-      // Step 3: Wait for confirmation
-      setSettlementState("confirming");
-
-      // Simulate confirmation delay
       setTimeout(() => {
-        setSettlementState("success");
-        toast.info("Bill settled successfully! Funds have been distributed.");
-
-        setTimeout(() => {
-          refetch();
-          router.push(`/bills-details/${id}`);
-        }, 3000);
-      }, 4000);
+        router.push(`/bills-details/${id}`);
+      }, 200);
     } catch (error: any) {
       console.error("Settlement failed:", error);
       setSettlementState("error");

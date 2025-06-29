@@ -60,13 +60,13 @@ export class Bill extends Document {
   @Prop({ required: true, maxlength: 100 })
   title: string;
 
-  @Prop({ required: true, min: 1 })
+  @Prop({ required: true, min: 0.1, type: Number })
   totalAmount: number;
 
   @Prop({ required: true, min: 2, max: 50 })
   participantCount: number;
 
-  @Prop({ required: true, min: 1 })
+  @Prop({ required: true, min: 0.01, type: Number })
   amountPerParticipant: number;
 
   @Prop({ default: BillCurrency.ADA })

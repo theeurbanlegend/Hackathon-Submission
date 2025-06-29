@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -27,16 +28,35 @@ export class BillService {
 
   async createBill(billData: CreateBillDto) {
     try {
+      const amountPerParticipant = parseFloat(
+        (billData.totalAmount / billData.participantCount).toFixed(6),
+      );
+
+      if (amountPerParticipant < 0.01) {
+        throw new HttpException(
+          'Amount per participant must be at least 0.01 ADA',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       return await this.billRepository.create({
         ...billData,
         status: BillStatus.Pending,
-        amountPerParticipant: billData.totalAmount / billData.participantCount,
+        amountPerParticipant,
         escrowAddress: this.cardanoService.getScriptAddress(),
         participants: [],
       });
     } catch (error) {
       console.error('Error creating bill:', error);
-      throw new HttpException('Failed to create bill', error.status || 500);
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        'Failed to create bill',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -49,34 +69,21 @@ export class BillService {
   }
 
   async getBillsByCreator(creatorAddress: string) {
-    const bills = await this.billRepository.findByCreator(creatorAddress);
-    if (bills.length === 0) {
-      throw new HttpException('No bills found for this creator', 404);
-    }
-    return bills;
+    return await this.billRepository.findByCreator(creatorAddress);
   }
 
   async getBillsByParticipant(participantAddress: string) {
-    const bills =
-      await this.billRepository.findByParticipant(participantAddress);
-    if (bills.length === 0) {
-      throw new HttpException('No bills found for this participant', 404);
-    }
-    return bills;
+    return await this.billRepository.findByParticipant(participantAddress);
   }
 
   async getBillByParticipantAddress(
     billId: string,
     participantAddress: string,
-  ): Promise<any> {
-    const bill = await this.billRepository.findByIdAndParticipant(
+  ) {
+    return await this.billRepository.findByIdAndParticipant(
       billId,
       participantAddress,
     );
-    if (!bill) {
-      throw new HttpException('Bill not found for this participant', 404);
-    }
-    return bill;
   }
 
   async updateBill(id: string, updateData: UpdateBillDto) {
