@@ -1,0 +1,81 @@
+{
+  "preamble": {
+    "title": "theeurbanlegend/ada-split-bills",
+    "description": "Aiken contracts for project 'theeurbanlegend/ada-split-bills'",
+    "version": "0.0.0",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.17+unknown"
+    },
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "escrow.escrow_validator.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/escrow~1EscrowDatum"
+        }
+      },
+      "redeemer": {
+        "title": "redeemer",
+        "schema": {
+          "$ref": "#/definitions/escrow~1EscrowRedeemer"
+        }
+      },
+      "compiledCode": "59010201010029800aba2aba1aab9faab9eaab9dab9a48888896600264646644b30013370e900118031baa00189919912cc004cdc3a400060126ea801626464b3001300f0028acc004cdc3a400060166ea800e264b30013371e6eb8c03cc034dd50009bae300f300d37540111323322330020020012259800800c528456600266e3cdd71809000801c528c4cc008008c04c00500e20223758602060226022602260226022602260226022601c6ea8c04002cdd71807980818069baa0018b2016300e300c37540071640291640346eb8c034004c028dd5002c5900818050009805180580098039baa0018b200a30070013007300800130070013003375400f149a26cac8009",
+      "hash": "1672d3c1facd4fdaceb9618bf0df69a5c65ddebf0384b0f62100206c"
+    },
+    {
+      "title": "escrow.escrow_validator.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "compiledCode": "59010201010029800aba2aba1aab9faab9eaab9dab9a48888896600264646644b30013370e900118031baa00189919912cc004cdc3a400060126ea801626464b3001300f0028acc004cdc3a400060166ea800e264b30013371e6eb8c03cc034dd50009bae300f300d37540111323322330020020012259800800c528456600266e3cdd71809000801c528c4cc008008c04c00500e20223758602060226022602260226022602260226022601c6ea8c04002cdd71807980818069baa0018b2016300e300c37540071640291640346eb8c034004c028dd5002c5900818050009805180580098039baa0018b200a30070013007300800130070013003375400f149a26cac8009",
+      "hash": "1672d3c1facd4fdaceb9618bf0df69a5c65ddebf0384b0f62100206c"
+    }
+  ],
+  "definitions": {
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "escrow/EscrowDatum": {
+      "title": "EscrowDatum",
+      "anyOf": [
+        {
+          "title": "EscrowDatum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "bill_id",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "creator_address",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    },
+    "escrow/EscrowRedeemer": {
+      "title": "EscrowRedeemer",
+      "anyOf": [
+        {
+          "title": "Settle",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "bill_id",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
