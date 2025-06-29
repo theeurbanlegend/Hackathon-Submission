@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Split, ArrowLeft } from "lucide-react";
+import { Split } from "lucide-react";
 
 export default function Navigation() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);

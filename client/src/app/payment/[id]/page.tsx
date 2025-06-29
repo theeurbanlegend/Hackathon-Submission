@@ -162,11 +162,19 @@ export default function PaymentPage() {
       setTimeout(() => {
         router.push(`${id}/success`);
       }, 100);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Payment failed:", error);
       setPaymentState("error");
-      setErrorMessage(error.message || "Payment failed. Please try again.");
-      toast.error(error.message || "Payment failed");
+      setErrorMessage(
+        error instanceof Error
+          ? error?.message
+          : "Payment failed. Please try again."
+      );
+      toast.error(
+        error instanceof Error
+          ? error?.message
+          : "Payment failed. Please try again."
+      );
     }
   };
 

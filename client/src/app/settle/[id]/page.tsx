@@ -171,11 +171,19 @@ export default function SettlePage() {
       setTimeout(() => {
         router.push(`/bills-details/${id}`);
       }, 200);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Settlement failed:", error);
       setSettlementState("error");
-      setErrorMessage(error.message || "Settlement failed. Please try again.");
-      toast.error(error.message || "Settlement failed");
+      setErrorMessage(
+        error instanceof Error
+          ? error?.message
+          : "Settlement failed. Please try again."
+      );
+      toast.error(
+        error instanceof Error
+          ? error?.message
+          : "Settlement failed. Please try again."
+      );
     }
   };
 
@@ -184,6 +192,7 @@ export default function SettlePage() {
       await navigator.clipboard.writeText(text);
       toast(`${label} copied to clipboard!`);
     } catch (err) {
+      console.error("Failed to copy text:", err);
       toast.error(`Failed to copy ${label}`);
     }
   };
@@ -331,13 +340,12 @@ export default function SettlePage() {
           </p>
         </div>
 
-        {/* Settlement Summary */}
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 mb-8">
           <div className="text-center">
             <p className="text-3xl font-bold text-gray-900 mb-2">
               {settlementStats.netAmount.toFixed(2)} ADA
             </p>
-            <p className="text-gray-600 mb-4">Net amount you'll receive</p>
+            <p className="text-gray-600 mb-4">Net amount you will receive</p>
             <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
               <span className="flex items-center gap-1">
                 <Users className="w-4 h-4" />

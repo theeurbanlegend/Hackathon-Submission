@@ -11,7 +11,7 @@ import {
   ArrowLeft,
   Clock,
 } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import { useGetSingleBillByParticipant } from "@/hooks/useBillQueries";
 import { useWallet } from "@/context/WalletContext";
@@ -26,7 +26,6 @@ interface PaymentDetails {
 
 export default function SuccessPage() {
   const { id } = useParams();
-  const router = useRouter();
   const { toast } = useToast();
   const {
     userWallet: { address },
@@ -46,7 +45,9 @@ export default function SuccessPage() {
       const details: PaymentDetails = {
         billId: id as string,
         txHash: partipantPaymentDetails?.paymentTxHash || "",
-        amount: parseFloat(partipantPaymentDetails?.amountPaid || ("0" as any)),
+        amount: parseFloat(
+          partipantPaymentDetails?.amountPaid?.toString() || "0"
+        ),
         billTitle: bill?.title || "Bill Payment",
         timestamp: new Date(
           partipantPaymentDetails?.paidAt || Date.now()
@@ -82,6 +83,7 @@ export default function SuccessPage() {
       await navigator.clipboard.writeText(text);
       toast(`${label} copied to clipboard!`);
     } catch (err) {
+      console.error("Failed to copy text:", err);
       toast.error(`Failed to copy ${label}. Please try again.`);
     }
   };
@@ -100,6 +102,7 @@ export default function SuccessPage() {
           url: shareUrl,
         });
       } catch (err) {
+        console.error("Share failed:", err);
         copyToClipboard(shareUrl, "Bill link");
       }
     } else {
@@ -130,7 +133,7 @@ export default function SuccessPage() {
             Please Connect Your Wallet
           </h2>
           <p className="text-gray-600 mb-8">
-            We couldn't find payment details because you are not connected to a
+            We could not find payment details because you are not connected to a
             wallet.
           </p>
         </div>
@@ -166,7 +169,7 @@ export default function SuccessPage() {
             No Payment Found
           </h2>
           <p className="text-gray-600 mb-8">
-            We couldn't find payment details. Redirecting to dashboard...
+            We couldn&apos;t find payment details. Redirecting to dashboard...
           </p>
           <Link
             href="/dashboard"
@@ -243,7 +246,7 @@ export default function SuccessPage() {
               <p className="font-medium mb-1">What happens next?</p>
               <p>
                 Your funds are held securely in the escrow smart contract until
-                all participants pay. You'll be notified when the bill is
+                all participants pay. You&apos;ll be notified when the bill is
                 complete and funds are distributed!
               </p>
             </div>

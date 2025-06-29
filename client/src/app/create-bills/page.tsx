@@ -140,7 +140,7 @@ export default function CreateBillPage() {
                 <p>
                   Funds will be held in a secure smart contract until all
                   participants pay. Participants can get refunds after 1 hour if
-                  the bill isn't complete.
+                  the bill isn&apos;t complete.
                 </p>
               </div>
             </div>

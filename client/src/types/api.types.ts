@@ -7,8 +7,6 @@ export interface CreateBillDto {
   receiptImagePath?: string;
 }
 
-export interface UpdateBillDto extends CreateBillDto {}
-
 export interface AddParticipantToBillDto {
   billId: string;
   participantAddress: string;

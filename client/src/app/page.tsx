@@ -43,7 +43,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Snap & Split</h3>
             <p className="text-gray-600">
-              Photo your receipt, we'll handle the math
+              Photo your receipt, we&apos;ll handle the math
             </p>
           </div>
           <div className="text-center">

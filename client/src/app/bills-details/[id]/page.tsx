@@ -166,6 +166,7 @@ export default function BillDetailsPage() {
       await navigator.clipboard.writeText(text);
       toast.success(`${label} copied to clipboard!`);
     } catch (err) {
+      console.error("Failed to copy text:", err);
       toast.error(`Failed to copy ${label}`);
     }
   };
@@ -180,6 +181,7 @@ export default function BillDetailsPage() {
           url: url,
         });
       } catch (err) {
+        console.error("Share failed:", err);
         copyToClipboard(url, "Bill link");
       }
     } else {
