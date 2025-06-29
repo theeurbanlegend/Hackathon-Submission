@@ -7,6 +7,10 @@ export enum BillStatus {
   Complete = 'complete',
   Expired = 'expired',
 }
+export enum TransactionStatus {
+  Pending = 'pending',
+  Confirmed = 'confirmed',
+}
 export enum ParticipantPaymentStatus {
   Pending = 'pending',
   Paid = 'paid',

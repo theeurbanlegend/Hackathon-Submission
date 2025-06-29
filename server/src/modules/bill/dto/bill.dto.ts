@@ -11,9 +11,6 @@ export class CreateBillDto {
   creatorAddress: string;
 
   @IsString()
-  escrowAddress: string;
-
-  @IsString()
   title: string;
 
   @IsNumber()

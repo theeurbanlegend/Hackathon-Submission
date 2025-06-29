@@ -1,4 +1,11 @@
-import { Body, Controller, Get, HttpException, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { BillService } from './bill.service';
 import { AddParticpantToBillDto, CreateBillDto } from './dto/bill.dto';
 
@@ -75,5 +82,21 @@ export class BillController {
         error.status || 500,
       );
     }
+  }
+
+  @Post(':billId/payment')
+  async buildPaymentTransaction(
+    @Param('billId') billId: string,
+    @Body() { participantAddress }: { participantAddress: string },
+  ) {
+    return this.billService.buildPaymentTransaction(billId, participantAddress);
+  }
+
+  @Post(':billId/settle')
+  async buildSettleTransaction(
+    @Param('billId') billId: string,
+    @Body('creatorAddress') creatorAddress: string,
+  ) {
+    return this.billService.buildSettleTransaction(billId, creatorAddress);
   }
 }

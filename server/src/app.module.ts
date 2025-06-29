@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RepositoryModule } from './repository/repository.module';
 import { BillModule } from './modules/bill/bill.module';
+import { CardanoModule } from './modules/cardano/cardano.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { BillModule } from './modules/bill/bill.module';
     }),
     RepositoryModule,
     BillModule,
+    CardanoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
