@@ -43,7 +43,7 @@ export default function CreateBillPage() {
     });
 
     setTimeout(() => {
-      router.push(`/bills/${data.bill?._id}`);
+      router.push(`/bills-details/${data.bill?._id}`);
     }, 1000);
   };
 
