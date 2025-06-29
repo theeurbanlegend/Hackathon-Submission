@@ -62,6 +62,18 @@ export class BillRepository {
       .exec();
   }
 
+  async findByIdAndParticipant(
+    billId: string,
+    participantAddress: string,
+  ): Promise<BillDocument | null> {
+    return this.billModel
+      .findOne({
+        _id: billId,
+        'participants.address': participantAddress,
+      })
+      .exec();
+  }
+
   async findPendingBills(): Promise<BillDocument[]> {
     return this.billModel
       .find({ status: { $in: ['pending', 'partial'] } })

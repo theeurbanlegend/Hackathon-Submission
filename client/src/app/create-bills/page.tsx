@@ -4,10 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { usePostCreateBill } from "@/hooks/useBillMutations";
+import { useWallet } from "@/context/WalletContext";
 
 export default function CreateBillPage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    userWallet: { address },
+  } = useWallet();
+  const { mutateAsync, isPending: isSubmitting } = usePostCreateBill();
   const [formData, setFormData] = useState({
     title: "",
     amount: "",
@@ -23,11 +28,22 @@ export default function CreateBillPage() {
       return;
     }
 
-    setIsSubmitting(true);
+    if (!address) {
+      alert("Please connect your wallet first");
+      return;
+    }
+
+    const data = await mutateAsync({
+      creatorAddress: address,
+      title: formData.title,
+      totalAmount: parseFloat(formData.amount),
+      participantCount: parseInt(formData.participants, 10),
+      description: formData.description || undefined,
+      receiptImagePath: "", // Assuming no receipt image for now
+    });
 
     // Simulate bill creation and contract deployment
     setTimeout(() => {
-      setIsSubmitting(false);
       router.push("/bills-details/abc123");
     }, 2000);
   };
@@ -46,9 +62,13 @@ export default function CreateBillPage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white rounded-2xl card-shadow p-8">
         <div className="flex items-center mb-8">
-          <Link href="/" className="mr-4 p-2 hover:bg-gray-100 rounded-lg">
+          <button
+            className="mr-4 p-2 hover:bg-gray-100 rounded-lg"
+            type="button"
+            onClick={() => router.back()}
+          >
             <ArrowLeft className="w-5 h-5" />
-          </Link>
+          </button>
           <h2 className="text-2xl font-bold text-gray-900">Create New Bill</h2>
         </div>
 

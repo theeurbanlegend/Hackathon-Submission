@@ -60,6 +60,20 @@ export class BillService {
     return bills;
   }
 
+  async getBillByParticipantAddress(
+    billId: string,
+    participantAddress: string,
+  ): Promise<any> {
+    const bill = await this.billRepository.findByIdAndParticipant(
+      billId,
+      participantAddress,
+    );
+    if (!bill) {
+      throw new HttpException('Bill not found for this participant', 404);
+    }
+    return bill;
+  }
+
   async updateBill(id: string, updateData: UpdateBillDto) {
     const bill = await this.billRepository.update(id, updateData);
     if (!bill) {
@@ -123,9 +137,9 @@ export class BillService {
     };
   }
 
-  async buildSettleTransaction(billId: string, creatorAddress: string) {
-    if (!billId || !creatorAddress) {
-      throw new BadRequestException('Bill ID and creator address are required');
+  async buildSettleTransaction(billId: string) {
+    if (!billId) {
+      throw new BadRequestException('Bill ID is required');
     }
 
     const bill = await this.billRepository.findById(billId);
@@ -134,13 +148,13 @@ export class BillService {
       throw new NotFoundException('Bill not found');
     }
 
-    if (bill.status !== BillStatus.Pending) {
+    if (bill.status !== BillStatus.Complete) {
       throw new BadRequestException('Bill is not in a settleable state');
     }
 
     const { unsignedTx } = await this.cardanoService.buildSettleTransaction(
       billId,
-      creatorAddress,
+      bill.creatorAddress,
     );
 
     return { unsignedTx };

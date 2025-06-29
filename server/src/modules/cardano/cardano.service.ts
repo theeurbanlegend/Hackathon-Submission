@@ -166,7 +166,7 @@ export class CardanoService {
         )
         .txOut(creatorAddress, [
           {
-            quantity: (totalAmount - 2500000).toString(),
+            quantity: (totalAmount - 4000000).toString(),
             unit: 'lovelace',
           },
         ])

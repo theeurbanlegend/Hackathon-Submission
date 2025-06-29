@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { Split, ArrowLeft } from "lucide-react";
+import { Split } from "lucide-react";
 import Link from "next/link";
+import { ModalTypes, useModal } from "@/context/ModalContext";
+import { useWallet } from "@/context/WalletContext";
 
 export default function Navigation() {
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const {
+    walletConnectionState: { isConnected },
+    userWallet: { address },
+    disconnect,
+  } = useWallet();
+  const { openModal } = useModal();
 
   const handleConnectWallet = () => {
-    // Simulate wallet connection
-    setTimeout(() => {
-      setIsWalletConnected(true);
-    }, 1000);
+    openModal(ModalTypes.WalletConnect, null);
   };
 
   return (
@@ -27,7 +30,7 @@ export default function Navigation() {
             </Link>
           </div>
           <div className="flex items-center space-x-4">
-            {!isWalletConnected ? (
+            {!isConnected ? (
               <button
                 onClick={handleConnectWallet}
                 className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -35,9 +38,21 @@ export default function Navigation() {
                 Connect Wallet
               </button>
             ) : (
-              <div className="bg-green-100 px-3 py-2 rounded-lg text-sm">
-                <span className="text-green-800">Connected: addr1...xyz</span>
-              </div>
+              <>
+                <div className="bg-green-100 px-3 py-2 rounded-lg text-sm">
+                  <span className="text-green-800">
+                    Connected: {address.slice(0, 6)}...{address.slice(-4)}
+                  </span>
+                </div>
+                <div>
+                  <button
+                    onClick={disconnect}
+                    className="bg-red-100 hover:bg-red-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>

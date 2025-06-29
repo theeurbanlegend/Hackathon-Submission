@@ -9,12 +9,12 @@ import {
 import { BillService } from './bill.service';
 import { AddParticpantToBillDto, CreateBillDto } from './dto/bill.dto';
 
-@Controller('bill')
+@Controller('bills')
 export class BillController {
   constructor(private readonly billService: BillService) {}
 
-  @Get('bills/by-creator/:creatorAddress')
-  async getBillsByCreator(@Body('creatorAddress') creatorAddress: string) {
+  @Get('by-creator/:creatorAddress')
+  async getBillsByCreator(@Param('creatorAddress') creatorAddress: string) {
     try {
       const bills = await this.billService.getBillsByCreator(creatorAddress);
       return { message: 'Bills retrieved successfully', bills };
@@ -26,9 +26,9 @@ export class BillController {
     }
   }
 
-  @Get('bills/by-participant/:participantAddress')
+  @Get('by-participant/:participantAddress')
   async getBillsByParticipant(
-    @Body('participantAddress') participantAddress: string,
+    @Param('participantAddress') participantAddress: string,
   ) {
     try {
       const bills =
@@ -42,8 +42,46 @@ export class BillController {
     }
   }
 
-  @Get('bill/:id')
-  async getBillById(@Body('id') id: string) {
+  @Get('bill/by-participant/:billId/:participantAddress')
+  async getBillByParticipantAddress(
+    @Param('billId') billId: string,
+    @Param('participantAddress') participantAddress: string,
+  ) {
+    try {
+      const bill = await this.billService.getBillByParticipantAddress(
+        billId,
+        participantAddress,
+      );
+      return { message: 'Bill retrieved successfully', bill };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Failed to retrieve bill by participant address',
+        error.status || 500,
+      );
+    }
+  }
+
+  @Get('payment-status/:billId/:participantAddress')
+  async getParticipantPaymentStatus(
+    @Param('billId') billId: string,
+    @Param('participantAddress') participantAddress: string,
+  ) {
+    try {
+      const status = await this.billService.hasParticipantPaid(
+        billId,
+        participantAddress,
+      );
+      return { message: 'Payment status retrieved successfully', status };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Failed to retrieve payment status',
+        error.status || 500,
+      );
+    }
+  }
+
+  @Get(':id')
+  async getBillById(@Param('id') id: string) {
     try {
       const bill = await this.billService.getBillById(id);
       return { message: 'Bill retrieved successfully', bill };
@@ -93,10 +131,7 @@ export class BillController {
   }
 
   @Post(':billId/settle')
-  async buildSettleTransaction(
-    @Param('billId') billId: string,
-    @Body('creatorAddress') creatorAddress: string,
-  ) {
-    return this.billService.buildSettleTransaction(billId, creatorAddress);
+  async buildSettleTransaction(@Param('billId') billId: string) {
+    return this.billService.buildSettleTransaction(billId);
   }
 }
