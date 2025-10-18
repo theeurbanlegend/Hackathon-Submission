@@ -18,6 +18,7 @@ import { useToast } from "@/context/ToastContext";
 import { useGetBillById } from "@/hooks/useBillQueries";
 import { useWallet } from "@/context/WalletContext";
 import { BillStatus, ParticipantPaymentStatus } from "@/types/api.types";
+import { ModalTypes, useModal } from "@/context/ModalContext";
 
 export default function BillDetailsPage() {
   const { id } = useParams();
@@ -31,6 +32,7 @@ export default function BillDetailsPage() {
   const { toast } = useToast();
   const { userWallet } = useWallet();
   const [lastPaymentCount, setLastPaymentCount] = useState(0);
+  const { openModal } = useModal();
 
   // Calculate payment progress
   const paymentStats = useMemo(() => {
@@ -159,6 +161,14 @@ export default function BillDetailsPage() {
           color: "text-gray-600 bg-gray-100",
         };
     }
+  };
+
+  const handleOpenQRCodeModal = () => {
+    if (!bill) return;
+    openModal(ModalTypes.QRCode, {
+      isOpen: true,
+      url: `${window.location.origin}/payment/${bill._id}`,
+    });
   };
 
   const copyToClipboard = async (text: string, label: string) => {
@@ -327,12 +337,15 @@ export default function BillDetailsPage() {
                 </p>
               )}
             </div>
-            <div className="bg-white p-4 rounded-lg">
+            <div
+              className="bg-white p-4 rounded-lg cursor-pointer"
+              onClick={handleOpenQRCodeModal}
+            >
               <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center">
                 <QrCode className="w-12 h-12 text-gray-600" />
               </div>
-              <p className="text-xs text-gray-600 text-center mt-2">
-                Scan to pay
+              <p className="text-xs text-gray-600 text-center mt-2 text-wrap">
+                View QR Code
               </p>
             </div>
           </div>

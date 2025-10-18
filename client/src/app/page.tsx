@@ -43,7 +43,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Snap & Split</h3>
             <p className="text-gray-600">
-              Photo your receipt, we&apos;ll handle the math
+              Photo your receipt, we&apos;ll handle the math (coming soon)
             </p>
           </div>
           <div className="text-center">
@@ -51,7 +51,7 @@ export default function HomePage() {
               <QrCode className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Share & Pay</h3>
-            <p className="text-gray-600">QR codes make splitting effortless</p>
+            <p className="text-gray-600">Links make splitting effortless.</p>
           </div>
           <div className="text-center">
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">

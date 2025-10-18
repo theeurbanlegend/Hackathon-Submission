@@ -14,7 +14,7 @@ export default function Navigation() {
   const { openModal } = useModal();
 
   const handleConnectWallet = () => {
-    openModal(ModalTypes.WalletConnect, null);
+    openModal(ModalTypes.WalletConnect, { isOpen: true });
   };
 
   return (
