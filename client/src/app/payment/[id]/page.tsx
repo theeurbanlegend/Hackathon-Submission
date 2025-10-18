@@ -115,7 +115,7 @@ export default function PaymentPage() {
   const handlePayment = async () => {
     if (!isConnected) {
       toast.error("Please connect your wallet first");
-      openModal(ModalTypes.WalletConnect, null);
+      openModal(ModalTypes.WalletConnect, { isOpen: true });
       return;
     }
 
