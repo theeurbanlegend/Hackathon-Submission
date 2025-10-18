@@ -27,7 +27,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, url }) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       setQrCodeUrl(qrUrl);
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     } catch (err) {
+      console.error("Error generating QR code:", err);
       setError("Failed to generate QR code");
     } finally {
       setIsLoading(false);
